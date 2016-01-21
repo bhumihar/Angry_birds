@@ -207,6 +207,7 @@ float triangle_rot_dir = 1;
 float rectangle_rot_dir = 1;
 bool triangle_rot_status = true;
 bool rectangle_rot_status = true;
+float rectangle_rot_degree=0.0f;
 
 /* Executed when a regular key is pressed/released/held-down */
 /* Prefered for Keyboard events */
@@ -216,11 +217,12 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
 
     if (action == GLFW_RELEASE) {
         switch (key) {
-            case GLFW_KEY_C:
-                rectangle_rot_status = !rectangle_rot_status;
+            case GLFW_KEY_W:
+                rectangle_rot_degree +=1;
                 break;
-            case GLFW_KEY_P:
-                triangle_rot_status = !triangle_rot_status;
+            case GLFW_KEY_S:
+                rectangle_rot_degree -=1;
+				
                 break;
             case GLFW_KEY_X:
                 // do something ..
@@ -307,9 +309,9 @@ void createTriangle ()
 
   /* Define vertex array as used in glBegin (GL_TRIANGLES) */
   static const GLfloat vertex_buffer_data [] = {
-    0, 1,0, // vertex 0
-    -1,-1,0, // vertex 1
-    1,-1,0, // vertex 2
+    0,0,0, // vertex 0
+    -0.5,-0.5,0, // vertex 1
+    0.5,-0.5,0, // vertex 2
   };
 
   static const GLfloat color_buffer_data [] = {
@@ -319,7 +321,7 @@ void createTriangle ()
   };
 
   // create3DObject creates and returns a handle to a VAO that can be used later
-  triangle = create3DObject(GL_TRIANGLES, 3, vertex_buffer_data, color_buffer_data, GL_FILL);
+  triangle = create3DObject(GL_TRIANGLES, 3, vertex_buffer_data, color_buffer_data, GL_FILL)	;
 }
 
 // Creates the rectangle object used in this sample code
@@ -327,13 +329,13 @@ void createRectangle ()
 {
   // GL3 accepts only Triangles. Quads are not supported
   static const GLfloat vertex_buffer_data [] = {
-    -1.2,-1,0, // vertex 1
-    1.2,-1,0, // vertex 2
-    1.2, 1,0, // vertex 3
+    0,0,0, // vertex 1
+    0,1.0,0, // vertex 2
+    0.3, 1.0,0, // vertex 3
 
-    1.2, 1,0, // vertex 3
-    -1.2, 1,0, // vertex 4
-    -1.2,-1,0  // vertex 1
+    0.3, 1.0,0, // vertex 3
+    0.3, 0,0, // vertex 4
+    0,0,0  // vertex 1
   };
 
   static const GLfloat color_buffer_data [] = {
@@ -391,9 +393,9 @@ void draw ()
 
   /* Render your scene */
 
-  glm::mat4 translateTriangle = glm::translate (glm::vec3(-2.0f, 0.0f, 0.0f)); // glTranslatef
-  glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/180.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
-  glm::mat4 triangleTransform = translateTriangle * rotateTriangle;
+  glm::mat4 translateTriangle = glm::translate (glm::vec3(-3.0f, -3.0f, 0.0f)); // glTranslatef
+  // glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/180.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
+  glm::mat4 triangleTransform = translateTriangle;
   Matrices.model *= triangleTransform; 
   MVP = VP * Matrices.model; // MVP = p * V * M
 
@@ -407,9 +409,9 @@ void draw ()
   // glPopMatrix ();
   Matrices.model = glm::mat4(1.0f);
 
-  glm::mat4 translateRectangle = glm::translate (glm::vec3(2, 0, 0));        // glTranslatef
-  glm::mat4 rotateRectangle = glm::rotate((float)(rectangle_rotation*M_PI/180.0f), glm::vec3(0,0,1)); // rotate about vector (-1,1,1)
-  Matrices.model *= (translateRectangle * rotateRectangle);
+  glm::mat4 translateRectangle = glm::translate (glm::vec3(-3.1, -3.0, 0));        // glTranslatef
+  // glm::mat4 rotateRectangle = glm::rotate((float)(rectangle_rot_degree/180.0f), glm::vec3(0,0,0)); // rotate about vector (-1,1,1)
+  Matrices.model *= (translateRectangle);
   MVP = VP * Matrices.model;
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
