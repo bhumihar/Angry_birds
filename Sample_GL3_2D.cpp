@@ -10,17 +10,18 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+// #include <GL/glew.h>
 
 using namespace std;
 
 struct VAO {
-    GLuint VertexArrayID;
-    GLuint VertexBuffer;
-    GLuint ColorBuffer;
+	GLuint VertexArrayID;
+	GLuint VertexBuffer;
+	GLuint ColorBuffer;
 
-    GLenum PrimitiveMode;
-    GLenum FillMode;
-    int NumVertices;
+	GLenum PrimitiveMode;
+	GLenum FillMode;
+	int NumVertices;
 };
 typedef struct VAO VAO;
 
@@ -112,24 +113,24 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 
 static void error_callback(int error, const char* description)
 {
-    fprintf(stderr, "Error: %s\n", description);
+	fprintf(stderr, "Error: %s\n", description);
 }
 
 void quit(GLFWwindow *window)
 {
-    glfwDestroyWindow(window);
-    glfwTerminate();
-    exit(EXIT_SUCCESS);
+	glfwDestroyWindow(window);
+	glfwTerminate();
+	exit(EXIT_SUCCESS);
 }
 
 
 /* Generate VAO, VBOs and return VAO handle */
 struct VAO* create3DObject (GLenum primitive_mode, int numVertices, const GLfloat* vertex_buffer_data, const GLfloat* color_buffer_data, GLenum fill_mode=GL_FILL)
 {
-    struct VAO* vao = new struct VAO;
-    vao->PrimitiveMode = primitive_mode;
-    vao->NumVertices = numVertices;
-    vao->FillMode = fill_mode;
+	struct VAO* vao = new struct VAO;
+	vao->PrimitiveMode = primitive_mode;
+	vao->NumVertices = numVertices;
+	vao->FillMode = fill_mode;
 
     // Create Vertex Array Object
     // Should be done after CreateWindow and before any other GL calls
@@ -166,34 +167,34 @@ struct VAO* create3DObject (GLenum primitive_mode, int numVertices, const GLfloa
 /* Generate VAO, VBOs and return VAO handle - Common Color for all vertices */
 struct VAO* create3DObject (GLenum primitive_mode, int numVertices, const GLfloat* vertex_buffer_data, const GLfloat red, const GLfloat green, const GLfloat blue, GLenum fill_mode=GL_FILL)
 {
-    GLfloat* color_buffer_data = new GLfloat [3*numVertices];
-    for (int i=0; i<numVertices; i++) {
-        color_buffer_data [3*i] = red;
-        color_buffer_data [3*i + 1] = green;
-        color_buffer_data [3*i + 2] = blue;
-    }
+	GLfloat* color_buffer_data = new GLfloat [3*numVertices];
+	for (int i=0; i<numVertices; i++) {
+		color_buffer_data [3*i] = red;
+		color_buffer_data [3*i + 1] = green;
+		color_buffer_data [3*i + 2] = blue;
+	}
 
-    return create3DObject(primitive_mode, numVertices, vertex_buffer_data, color_buffer_data, fill_mode);
+	return create3DObject(primitive_mode, numVertices, vertex_buffer_data, color_buffer_data, fill_mode);
 }
 
 /* Render the VBOs handled by VAO */
 void draw3DObject (struct VAO* vao)
 {
     // Change the Fill Mode for this object
-    glPolygonMode (GL_FRONT_AND_BACK, vao->FillMode);
+	glPolygonMode (GL_FRONT_AND_BACK, vao->FillMode);
 
     // Bind the VAO to use
-    glBindVertexArray (vao->VertexArrayID);
+	glBindVertexArray (vao->VertexArrayID);
 
     // Enable Vertex Attribute 0 - 3d Vertices
-    glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(0);
     // Bind the VBO to use
-    glBindBuffer(GL_ARRAY_BUFFER, vao->VertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vao->VertexBuffer);
 
     // Enable Vertex Attribute 1 - Color
-    glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(1);
     // Bind the VBO to use
-    glBindBuffer(GL_ARRAY_BUFFER, vao->ColorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vao->ColorBuffer);
 
     // Draw the geometry !
     glDrawArrays(vao->PrimitiveMode, 0, vao->NumVertices); // Starting from vertex 0; 3 vertices total -> 1 triangle
@@ -202,12 +203,38 @@ void draw3DObject (struct VAO* vao)
 /**************************
  * Customizable functions *
  **************************/
+ float rectangle_rot_degree=0*M_PI/180.0f;
+ float X=-3.1,Y=-2.1,vx,vy,t,x=-5.0,y=-5.0;
+ int flag=0;float g= 0.1;
+ void CalculateAngle ()
+ {
+ 	if(flag==1)
+ 	{
+ 		x=X-sin(rectangle_rot_degree);
+ 		y=Y-(1-(cos(rectangle_rot_degree)));
+ 		cout<<x<<" "<<y<<endl;
+ 		flag=0;
+ 	}
 
-float triangle_rot_dir = 1;
-float rectangle_rot_dir = 1;
-bool triangle_rot_status = true;
-bool rectangle_rot_status = true;
-float rectangle_rot_degree=0.0f;
+ }
+ void Projectile ()
+ {
+        float angleofprojection=90*M_PI/180.0f + rectangle_rot_degree;
+        float velocity=0.09;float g= 0.1;
+        vx=velocity*cos(angleofprojection);vy=velocity*sin(angleofprojection);
+        float t=0;
+        // while(1);
+ }
+ void GetXandY()
+{
+
+	x=x+vx*t;
+    y=y+vy*t-0.5*g*t*t;
+    t=t+0.01;
+
+} 
+
+ 
 
 /* Executed when a regular key is pressed/released/held-down */
 /* Prefered for Keyboard events */
@@ -215,31 +242,35 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
 {
      // Function is called first on GLFW_PRESS.
 
-    if (action == GLFW_RELEASE) {
-        switch (key) {
-            case GLFW_KEY_W:
-                rectangle_rot_degree +=1;
-                break;
-            case GLFW_KEY_S:
-                rectangle_rot_degree -=1;
-				
-                break;
-            case GLFW_KEY_X:
-                // do something ..
-                break;
-            default:
-                break;
-        }
-    }
-    else if (action == GLFW_PRESS) {
-        switch (key) {
-            case GLFW_KEY_ESCAPE:
-                quit(window);
-                break;
-            default:
-                break;
-        }
-    }
+	if (action == GLFW_RELEASE) {
+		switch (key) {
+			case GLFW_KEY_W:
+			rectangle_rot_degree +=5*M_PI/180.0f;
+			CalculateAngle();
+			break;
+			case GLFW_KEY_S:
+			rectangle_rot_degree -=5*M_PI/180.0f;
+			CalculateAngle();
+			break;
+			case GLFW_KEY_SPACE:
+			flag=1;
+			t=0;
+			CalculateAngle();
+			Projectile();
+          	break;
+			default:
+			break;
+		}
+	}
+	else if (action == GLFW_PRESS) {
+		switch (key) {
+			case GLFW_KEY_ESCAPE:
+			quit(window);
+			break;
+			default:
+			break;
+		}
+	}
 }
 
 /* Executed for character input (like in text boxes) */
@@ -248,29 +279,29 @@ void keyboardChar (GLFWwindow* window, unsigned int key)
 	switch (key) {
 		case 'Q':
 		case 'q':
-            quit(window);
-            break;
+		quit(window);
+		break;
 		default:
-			break;
+		break;
 	}
 }
 
 /* Executed when a mouse button is pressed/released */
 void mouseButton (GLFWwindow* window, int button, int action, int mods)
 {
-    switch (button) {
-        case GLFW_MOUSE_BUTTON_LEFT:
-            if (action == GLFW_RELEASE)
-                triangle_rot_dir *= -1;
-            break;
-        case GLFW_MOUSE_BUTTON_RIGHT:
-            if (action == GLFW_RELEASE) {
-                rectangle_rot_dir *= -1;
-            }
-            break;
-        default:
-            break;
-    }
+	switch (button) {
+		case GLFW_MOUSE_BUTTON_LEFT:
+		if (action == GLFW_RELEASE)
+                // triangle_rot_dir *= -1;
+			break;
+		case GLFW_MOUSE_BUTTON_RIGHT:
+		if (action == GLFW_RELEASE) {
+                // rectangle_rot_dir *= -1;
+		}
+		break;
+		default:
+		break;
+	}
 }
 
 
@@ -278,10 +309,10 @@ void mouseButton (GLFWwindow* window, int button, int action, int mods)
 /* Modify the bounds of the screen here in glm::ortho or Field of View in glm::Perspective */
 void reshapeWindow (GLFWwindow* window, int width, int height)
 {
-    int fbwidth=width, fbheight=height;
+	int fbwidth=width, fbheight=height;
     /* With Retina display on Mac OS X, GLFW's FramebufferSize
      is different from WindowSize */
-    glfwGetFramebufferSize(window, &fbwidth, &fbheight);
+	glfwGetFramebufferSize(window, &fbwidth, &fbheight);
 
 	GLfloat fov = 90.0f;
 
@@ -297,38 +328,38 @@ void reshapeWindow (GLFWwindow* window, int width, int height)
     // Matrices.projection = glm::perspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1f, 500.0f);
 
     // Ortho projection for 2D views
-    Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
-}
+	   Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
+	}
 
-VAO *triangle, *rectangle;
+	VAO *triangle, *rectangle , * bullet, * circle;
 
 // Creates the triangle object used in this sample code
-void createTriangle ()
-{
+	void createTriangle ()
+	{
   /* ONLY vertices between the bounds specified in glm::ortho will be visible on screen */
 
   /* Define vertex array as used in glBegin (GL_TRIANGLES) */
-  static const GLfloat vertex_buffer_data [] = {
+		static const GLfloat vertex_buffer_data [] = {
     0,0,0, // vertex 0
     -0.5,-0.5,0, // vertex 1
     0.5,-0.5,0, // vertex 2
-  };
+};
 
-  static const GLfloat color_buffer_data [] = {
+static const GLfloat color_buffer_data [] = {
     1,0,0, // color 0
     0,1,0, // color 1
     0,0,1, // color 2
-  };
+};
 
   // create3DObject creates and returns a handle to a VAO that can be used later
-  triangle = create3DObject(GL_TRIANGLES, 3, vertex_buffer_data, color_buffer_data, GL_FILL)	;
+triangle = create3DObject(GL_TRIANGLES, 3, vertex_buffer_data, color_buffer_data, GL_FILL)	;
 }
 
 // Creates the rectangle object used in this sample code
 void createRectangle ()
 {
   // GL3 accepts only Triangles. Quads are not supported
-  static const GLfloat vertex_buffer_data [] = {
+	static const GLfloat vertex_buffer_data [] = {
     0,0,0, // vertex 1
     0,1.0,0, // vertex 2
     0.3, 1.0,0, // vertex 3
@@ -336,9 +367,9 @@ void createRectangle ()
     0.3, 1.0,0, // vertex 3
     0.3, 0,0, // vertex 4
     0,0,0  // vertex 1
-  };
+};
 
-  static const GLfloat color_buffer_data [] = {
+static const GLfloat color_buffer_data [] = {
     1,0,0, // color 1
     0,0,1, // color 2
     0,1,0, // color 3
@@ -346,10 +377,76 @@ void createRectangle ()
     0,1,0, // color 3
     0.3,0.3,0.3, // color 4
     1,0,0  // color 1
-  };
+};
 
   // create3DObject creates and returns a handle to a VAO that can be used later
-  rectangle = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_data, GL_FILL);
+rectangle = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_data, GL_FILL);
+
+
+}
+ void createBullet ()
+ {
+	// GL3 accepts only Triangles. Quads are not supported
+ 	static const GLfloat vertex_buffer_data [] = {
+    0,0,0, // vertex 1
+    0,0.3,0, // vertex 2
+    0.3, 0.3,0, // vertex 3
+
+    0.3, 0.3,0, // vertex 3
+    0.3, 0,0, // vertex 4
+    0,0,0  // vertex 1
+};
+
+static const GLfloat color_buffer_data [] = {
+    1,0,0, // color 1
+    0,0,1, // color 2
+    0,0,0, // color 3
+
+    0,0,0, // color 3
+    0.3,0.3,0.3, // color 4
+    1,0,0  // color 1
+};
+
+  // create3DObject creates and returns a handle to a VAO that can be used later
+bullet = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_data, GL_FILL);
+}
+void drawCircle( GLfloat x, GLfloat y, GLfloat z, GLfloat radius, GLint numberOfSides )
+{
+    GLint numberOfVertices = numberOfSides+2;
+    
+    GLfloat doublePi = 2.0f * M_PI;
+    
+    GLfloat circleVerticesX[numberOfVertices];
+    GLfloat circleVerticesY[numberOfVertices];
+    GLfloat circleVerticesZ[numberOfVertices];
+    
+    circleVerticesX[0] = x;
+    circleVerticesY[0] = y;
+    circleVerticesZ[0] = z;
+    
+    for ( int i = 1; i <numberOfVertices; i++ )
+    {
+        circleVerticesX[i] = x + ( radius * cos( i * doublePi / numberOfSides ) );
+        circleVerticesY[i] = y + ( radius * sin( i * doublePi / numberOfSides ) );
+        circleVerticesZ[i] = z;
+    }
+    
+    GLfloat allCircleVertices[numberOfVertices * 3];
+    
+    for ( int i = 0; i <numberOfVertices; i++ )
+    {
+        allCircleVertices[i * 3] = circleVerticesX[i];
+        allCircleVertices[( i * 3 ) + 1] = circleVerticesY[i];
+        allCircleVertices[( i * 3 ) + 2] = circleVerticesZ[i];
+    }
+    
+    
+    // glEnableClientState( GL_VERTEX_ARRAY );
+    // glVertexPointer( 3, GL_FLOAT, 0, allCircleVertices );
+    // glDrawArrays( GL_LINE_STRIP, 0, numberOfVertices );
+    // glDisableClientState( GL_VERTEX_ARRAY );
+    circle=create3DObject(GL_TRIANGLE_FAN,numberOfVertices,allCircleVertices,1,0,0);
+
 }
 
 float camera_rotation_angle = 90;
@@ -360,19 +457,20 @@ float triangle_rotation = 0;
 /* Edit this function according to your assignment */
 void draw ()
 {
+
   // clear the color and depth in the frame buffer
-  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // use the loaded shader program
   // Don't change unless you know what you are doing
-  glUseProgram (programID);
+	glUseProgram (programID);
 
   // Eye - Location of camera. Don't change unless you are sure!!
-  glm::vec3 eye ( 5*cos(camera_rotation_angle*M_PI/180.0f), 0, 5*sin(camera_rotation_angle*M_PI/180.0f) );
+	glm::vec3 eye ( 5*cos(camera_rotation_angle*M_PI/180.0f), 0, 5*sin(camera_rotation_angle*M_PI/180.0f) );
   // Target - Where is the camera looking at.  Don't change unless you are sure!!
-  glm::vec3 target (0, 0, 0);
+	glm::vec3 target (0, 0, 0);
   // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
-  glm::vec3 up (0, 1, 0);
+	glm::vec3 up (0, 1, 0);
 
   // Compute Camera matrix (view)
   // Matrices.view = glm::lookAt( eye, target, up ); // Rotating Camera for 3D
@@ -410,20 +508,35 @@ void draw ()
   Matrices.model = glm::mat4(1.0f);
 
   glm::mat4 translateRectangle = glm::translate (glm::vec3(-3.1, -3.0, 0));        // glTranslatef
-  // glm::mat4 rotateRectangle = glm::rotate((float)(rectangle_rot_degree/180.0f), glm::vec3(0,0,0)); // rotate about vector (-1,1,1)
-  Matrices.model *= (translateRectangle);
+  glm::mat4 rotateRectangle = glm::rotate((float)(rectangle_rot_degree), glm::vec3(0,0,1)); // rotate about z axis
+  Matrices.model *= (translateRectangle*rotateRectangle);
   MVP = VP * Matrices.model;
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
   // draw3DObject draws the VAO given to it using current MVP matrix
   draw3DObject(rectangle);
+  
+  Matrices.model = glm::mat4(1.0f);
+    GetXandY();
+   
+  glm::mat4 translateBullet = glm::translate (glm::vec3(x,y,0));        // glTranslatef
+  // glm::mat4 rotateRectangle = glm::rotate((float)(rectangle_rot_degree*M_PI/180.0f), glm::vec3(0,0,1)); // rotate about z axis
+  Matrices.model *= (translateBullet);
+  MVP = VP * Matrices.model;
+  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
+  draw3DObject(bullet);
+  
+  Matrices.model = glm::mat4(1.0f);
+   glm::mat4 translateCircle = glm::translate (glm::vec3(1,1,0));
+   Matrices.model *= (translateCircle);
+   MVP = VP * Matrices.model;
+  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+  draw3DObject(circle); 
+   
+   
   // Increment angles
-  float increments = 1;
-
   //camera_rotation_angle++; // Simulating camera rotation
-  triangle_rotation = triangle_rotation + increments*triangle_rot_dir*triangle_rot_status;
-  rectangle_rotation = rectangle_rotation + increments*rectangle_rot_dir*rectangle_rot_status;
 }
 
 /* Initialise glfw window, I/O callbacks and the renderer to use */
@@ -434,7 +547,7 @@ GLFWwindow* initGLFW (int width, int height)
 
     glfwSetErrorCallback(error_callback);
     if (!glfwInit()) {
-        exit(EXIT_FAILURE);
+    	exit(EXIT_FAILURE);
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -445,8 +558,8 @@ GLFWwindow* initGLFW (int width, int height)
     window = glfwCreateWindow(width, height, "Sample OpenGL 3.3 Application", NULL, NULL);
 
     if (!window) {
-        glfwTerminate();
-        exit(EXIT_FAILURE);
+    	glfwTerminate();
+    	exit(EXIT_FAILURE);
     }
 
     glfwMakeContextCurrent(window);
@@ -482,7 +595,9 @@ void initGL (GLFWwindow* window, int width, int height)
 	// Create the models
 	createTriangle (); // Generate the VAO, VBOs, vertices data & copy into the array buffer
 	createRectangle ();
-	
+	createBullet ();
+	drawCircle(1.0,1.0,0,0.5,50);
+
 	// Create and compile our GLSL program from the shaders
 	programID = LoadShaders( "Sample_GL.vert", "Sample_GL.frag" );
 	// Get a handle for our "MVP" uniform
@@ -492,46 +607,47 @@ void initGL (GLFWwindow* window, int width, int height)
 	reshapeWindow (window, width, height);
 
     // Background color of the scene
-	glClearColor (0.3f, 0.3f, 0.3f, 0.0f); // R, G, B, A
+	glClearColor (1.0f, 1.0f, 0.6f, 0.0f); // R, G, B, A
 	glClearDepth (1.0f);
 
 	glEnable (GL_DEPTH_TEST);
 	glDepthFunc (GL_LEQUAL);
 
-    cout << "VENDOR: " << glGetString(GL_VENDOR) << endl;
-    cout << "RENDERER: " << glGetString(GL_RENDERER) << endl;
-    cout << "VERSION: " << glGetString(GL_VERSION) << endl;
-    cout << "GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+	cout << "VENDOR: " << glGetString(GL_VENDOR) << endl;
+	cout << "RENDERER: " << glGetString(GL_RENDERER) << endl;
+	cout << "VERSION: " << glGetString(GL_VERSION) << endl;
+	cout << "GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
 }
 
 int main (int argc, char** argv)
 {
-	int width = 600;
-	int height = 600;
+	int width = 900;
+	int height = 900;
 
-    GLFWwindow* window = initGLFW(width, height);
+	GLFWwindow* window = initGLFW(width, height);
 
 	initGL (window, width, height);
 
-    double last_update_time = glfwGetTime(), current_time;
+	double last_update_time = glfwGetTime(), current_time;
 
     /* Draw in loop */
-    while (!glfwWindowShouldClose(window)) {
+	while (!glfwWindowShouldClose(window)) {
 
         // OpenGL Draw commands
-        draw();
+
+		draw();
 
         // Swap Frame Buffer in double buffering
-        glfwSwapBuffers(window);
+		glfwSwapBuffers(window);
 
         // Poll for Keyboard and mouse events
-        glfwPollEvents();
+		glfwPollEvents();
 
         // Control based on time (Time based transformation like 5 degrees rotation every 0.5s)
         current_time = glfwGetTime(); // Time in seconds
         if ((current_time - last_update_time) >= 0.5) { // atleast 0.5s elapsed since last frame
             // do something every 0.5 seconds ..
-            last_update_time = current_time;
+        	last_update_time = current_time;
         }
     }
 
