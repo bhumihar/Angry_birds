@@ -204,8 +204,9 @@ void draw3DObject (struct VAO* vao)
  * Customizable functions *
  **************************/
  float rectangle_rot_degree=0*M_PI/180.0f;
- float X=-3.1,Y=-2.1,vx,vy,t,x=-5.0,y=-5.0;
- int flag=0;float g= 0.1;
+ float X=-3.1f,Y=-2.1f,vx=0,vy=0,t,x=-5.0f,y=-5.0f;
+ int flag=0; 
+ float g=0;
  void CalculateAngle ()
  {
  	if(flag==1)
@@ -220,7 +221,7 @@ void draw3DObject (struct VAO* vao)
  void Projectile ()
  {
         float angleofprojection=90*M_PI/180.0f + rectangle_rot_degree;
-        float velocity=0.09;float g= 0.1;
+        float velocity=0.09;g= 0.1;
         vx=velocity*cos(angleofprojection);vy=velocity*sin(angleofprojection);
         float t=0;
         // while(1);
@@ -384,33 +385,8 @@ rectangle = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_dat
 
 
 }
- void createBullet ()
- {
-	// GL3 accepts only Triangles. Quads are not supported
- 	static const GLfloat vertex_buffer_data [] = {
-    0,0,0, // vertex 1
-    0,0.3,0, // vertex 2
-    0.3, 0.3,0, // vertex 3
-
-    0.3, 0.3,0, // vertex 3
-    0.3, 0,0, // vertex 4
-    0,0,0  // vertex 1
-};
-
-static const GLfloat color_buffer_data [] = {
-    1,0,0, // color 1
-    0,0,1, // color 2
-    0,0,0, // color 3
-
-    0,0,0, // color 3
-    0.3,0.3,0.3, // color 4
-    1,0,0  // color 1
-};
-
-  // create3DObject creates and returns a handle to a VAO that can be used later
-bullet = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_data, GL_FILL);
-}
-void drawCircle( GLfloat x, GLfloat y, GLfloat z, GLfloat radius, GLint numberOfSides )
+ 
+void drawCircle( GLfloat a, GLfloat b, GLfloat c, GLfloat radius, GLint numberOfSides )
 {
     GLint numberOfVertices = numberOfSides+2;
     
@@ -420,15 +396,58 @@ void drawCircle( GLfloat x, GLfloat y, GLfloat z, GLfloat radius, GLint numberOf
     GLfloat circleVerticesY[numberOfVertices];
     GLfloat circleVerticesZ[numberOfVertices];
     
-    circleVerticesX[0] = x;
-    circleVerticesY[0] = y;
-    circleVerticesZ[0] = z;
+    circleVerticesX[0] = a;
+    circleVerticesY[0] = b;
+    circleVerticesZ[0] = c;
     
     for ( int i = 1; i <numberOfVertices; i++ )
     {
-        circleVerticesX[i] = x + ( radius * cos( i * doublePi / numberOfSides ) );
-        circleVerticesY[i] = y + ( radius * sin( i * doublePi / numberOfSides ) );
-        circleVerticesZ[i] = z;
+        circleVerticesX[i] = a + ( radius * cos( i * doublePi / numberOfSides ) );
+        circleVerticesY[i] = b+ ( radius * sin( i * doublePi / numberOfSides ) );
+        circleVerticesZ[i] = c;
+    }
+    
+    GLfloat  allCircleVertices[numberOfVertices * 3];
+    
+    for ( int i = 0; i <numberOfVertices; i++ )
+    {
+        allCircleVertices[i * 3] = circleVerticesX[i];
+        allCircleVertices[( i * 3 ) + 1] = circleVerticesY[i];
+        allCircleVertices[( i * 3 ) + 2] = circleVerticesZ[i];
+    }
+    
+    
+    // glEnableClientState( GL_VERTEX_ARRAY );
+    // glVertexPointer( 3, GL_FLOAT, 0, allCircleVertices );
+    // glDrawArrays( GL_LINE_STRIP, 0, numberOfVertices );
+    // glDisableClientState( GL_VERTEX_ARRAY );
+    circle=create3DObject(GL_TRIANGLE_FAN,numberOfVertices,allCircleVertices,1,0,0);
+      
+}
+// void createBullet(GLint numberOfVertices,GLfloat allCircleVertices )
+// {
+//     bullet=create3DObject(GL_TRIANGLE_FAN,numberOfVertices,allCircleVertices,1,0,0);
+
+// }
+void createBullet( GLfloat a, GLfloat b, GLfloat c, GLfloat radius, GLint numberOfSides )
+{
+     GLint numberOfVertices = numberOfSides+2;
+    
+    GLfloat doublePi = 2.0f * M_PI;
+    
+    GLfloat circleVerticesX[numberOfVertices];
+    GLfloat circleVerticesY[numberOfVertices];
+    GLfloat circleVerticesZ[numberOfVertices];
+    
+    circleVerticesX[0] = a;
+    circleVerticesY[0] = b;
+    circleVerticesZ[0] = c;
+    
+    for ( int i = 1; i <numberOfVertices; i++ )
+    {
+        circleVerticesX[i] = a + ( radius * cos( i * doublePi / numberOfSides ) );
+        circleVerticesY[i] = b + ( radius * sin( i * doublePi / numberOfSides ) );
+        circleVerticesZ[i] = c;
     }
     
     GLfloat allCircleVertices[numberOfVertices * 3];
@@ -445,8 +464,8 @@ void drawCircle( GLfloat x, GLfloat y, GLfloat z, GLfloat radius, GLint numberOf
     // glVertexPointer( 3, GL_FLOAT, 0, allCircleVertices );
     // glDrawArrays( GL_LINE_STRIP, 0, numberOfVertices );
     // glDisableClientState( GL_VERTEX_ARRAY );
-    circle=create3DObject(GL_TRIANGLE_FAN,numberOfVertices,allCircleVertices,1,0,0);
-
+    bullet=create3DObject(GL_TRIANGLE_FAN,numberOfVertices,allCircleVertices,1,0,0);
+      
 }
 
 float camera_rotation_angle = 90;
@@ -491,8 +510,10 @@ void draw ()
 
   /* Render your scene */
 
-  glm::mat4 translateTriangle = glm::translate (glm::vec3(-3.0f, -3.0f, 0.0f)); // glTranslatef
+  glm::mat4 translateTriangle = glm::translate (glm::vec3(-3.0f, -3.0f, 0.0)); // glTranslatef
   // glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/180.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
+  // glm::mat4 scaleTriangle = glm::scale (glm::vec3(0.5f, 0.5f, 0.0)); // glTranslatef
+  
   glm::mat4 triangleTransform = translateTriangle;
   Matrices.model *= triangleTransform; 
   MVP = VP * Matrices.model; // MVP = p * V * M
@@ -518,13 +539,13 @@ void draw ()
   
   Matrices.model = glm::mat4(1.0f);
     GetXandY();
+    cout<<x<<" "<<y<<endl;
    
-  glm::mat4 translateBullet = glm::translate (glm::vec3(x,y,0));        // glTranslatef
+  glm::mat4 translateBullet = glm::translate (glm::vec3(x+3.1,y+2.1,0));        // glTranslatef
   // glm::mat4 rotateRectangle = glm::rotate((float)(rectangle_rot_degree*M_PI/180.0f), glm::vec3(0,0,1)); // rotate about z axis
   Matrices.model *= (translateBullet);
   MVP = VP * Matrices.model;
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
   draw3DObject(bullet);
   
   Matrices.model = glm::mat4(1.0f);
@@ -538,7 +559,7 @@ void draw ()
   // Increment angles
   //camera_rotation_angle++; // Simulating camera rotation
 }
-
+	
 /* Initialise glfw window, I/O callbacks and the renderer to use */
 /* Nothing to Edit here */
 GLFWwindow* initGLFW (int width, int height)
@@ -595,8 +616,8 @@ void initGL (GLFWwindow* window, int width, int height)
 	// Create the models
 	createTriangle (); // Generate the VAO, VBOs, vertices data & copy into the array buffer
 	createRectangle ();
-	createBullet ();
 	drawCircle(1.0,1.0,0,0.5,50);
+    createBullet(-3.1,-2.1,0,0.1,50);
 
 	// Create and compile our GLSL program from the shaders
 	programID = LoadShaders( "Sample_GL.vert", "Sample_GL.frag" );
@@ -621,8 +642,8 @@ void initGL (GLFWwindow* window, int width, int height)
 
 int main (int argc, char** argv)
 {
-	int width = 900;
-	int height = 900;
+	int width = 1000;
+	int height = 1000;
 
 	GLFWwindow* window = initGLFW(width, height);
 
