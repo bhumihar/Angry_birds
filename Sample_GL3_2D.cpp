@@ -22,6 +22,8 @@ struct VAO {
 	GLenum PrimitiveMode;
 	GLenum FillMode;
 	int NumVertices;
+	int radius;
+	int center;
 };
 typedef struct VAO VAO;
 
@@ -204,9 +206,11 @@ void draw3DObject (struct VAO* vao)
  * Customizable functions *
  **************************/
  float rectangle_rot_degree=0*M_PI/180.0f;
- float X=-3.1f,Y=-2.1f,vx=0,vy=0,t,x=-5.0f,y=-5.0f;
+ float X=-3.1f,Y=-2.1f,vx=0,vy=0,t,x=-5.0f,y=-5.0f,velocity,initial_velocity=0.05;
+ float zoomx=-4.0f , zoomX=4.0f , zoomy=-4.0f , zoomY=4.0f;
  int flag=0; 
  float g=0;
+ 
  void CalculateAngle ()
  {
  	if(flag==1)
@@ -221,18 +225,36 @@ void draw3DObject (struct VAO* vao)
  void Projectile ()
  {
         float angleofprojection=90*M_PI/180.0f + rectangle_rot_degree;
-        float velocity=0.09;g= 0.1;
+         g= 0.1;
+         velocity=initial_velocity;
+         cout<<velocity<<endl;
         vx=velocity*cos(angleofprojection);vy=velocity*sin(angleofprojection);
         float t=0;
         // while(1);
+ }
+
+ void IfHitGround()
+ {
+ 	if( y < -3.45f)
+ 	{
+ 		vx=vx/1.1;
+ 		vy=vy/1.1;
+ 		y=-3.44f;
+ 		t=0.05;
+ 		// cout<<vx<<" "<<vy<<endl;
+ 	}
  }
  void GetXandY()
 {
 
 	x=x+vx*t;
     y=y+vy*t-0.5*g*t*t;
+    cout<<vx<<" "<<vy<<endl;
+
+    IfHitGround();
     t=t+0.01;
 
+    
 } 
 
  
@@ -243,28 +265,52 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
 {
      // Function is called first on GLFW_PRESS.
 
-	if (action == GLFW_RELEASE) {
+	if (action == GLFW_REPEAT) {
 		switch (key) {
-			case GLFW_KEY_W:
+			case GLFW_KEY_A:
 			rectangle_rot_degree +=5*M_PI/180.0f;
 			CalculateAngle();
 			break;
-			case GLFW_KEY_S:
+			case GLFW_KEY_D:
 			rectangle_rot_degree -=5*M_PI/180.0f;
 			CalculateAngle();
 			break;
+			case GLFW_KEY_F:
+			// velocity=0.05;
+			initial_velocity=initial_velocity+0.01/4;
+			cout<<initial_velocity<<endl;
+			break;
+			case GLFW_KEY_S:
+			// velocity=0.05;
+			initial_velocity=initial_velocity-0.01/4;
+			cout<<initial_velocity<<endl;
+			break;
+		}
+	}
+	else if(action==GLFW_PRESS){
+		switch(key){
+			case GLFW_KEY_A:
+			rectangle_rot_degree +=5*M_PI/180.0f;
+			CalculateAngle();
+			break;
+			case GLFW_KEY_D:
+			rectangle_rot_degree -=5*M_PI/180.0f;
+			CalculateAngle();
+			break;
+			// case GLFW_KEY_UP:
+
+		}
+	}
+
+	else if (action == GLFW_RELEASE) {
+		switch (key) {
 			case GLFW_KEY_SPACE:
 			flag=1;
 			t=0;
 			CalculateAngle();
 			Projectile();
-          	break;
-			default:
+			initial_velocity=0.05;
 			break;
-		}
-	}
-	else if (action == GLFW_PRESS) {
-		switch (key) {
 			case GLFW_KEY_ESCAPE:
 			quit(window);
 			break;
@@ -332,7 +378,7 @@ void reshapeWindow (GLFWwindow* window, int width, int height)
 	   Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
 	}
 
-	VAO *triangle, *rectangle , * bullet, * circle;
+	VAO *triangle, *rectangle , * bullet, * circle ,* rectangular_ground , *obstacles[50],*bricks[50];
 
 // Creates the triangle object used in this sample code
 	void createTriangle ()
@@ -382,6 +428,17 @@ static const GLfloat color_buffer_data [] = {
 
   // create3DObject creates and returns a handle to a VAO that can be used later
 rectangle = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_data, GL_FILL);
+rectangular_ground=create3DObject(GL_TRIANGLES,6,vertex_buffer_data,0.003,0.650,0.066,GL_FILL);
+
+for(int i=1;i<=4;i++)
+{
+	obstacles[i]=create3DObject(GL_TRIANGLES,6,vertex_buffer_data,1,0,0,GL_FILL);
+}
+for (int i = 1	; i <=2; ++i)
+{
+	bricks[i]=create3DObject(GL_TRIANGLES,6,vertex_buffer_data,1,0,0,GL_FILL);
+}
+
 
 
 }
@@ -536,10 +593,23 @@ void draw ()
 
   // draw3DObject draws the VAO given to it using current MVP matrix
   draw3DObject(rectangle);
+
+  Matrices.model = glm::mat4(1.0f);
+
+  glm::mat4 translateRectangleGround = glm::translate (glm::vec3(-4.0, -4.1, 0));        // glTranslatef
+  // glm::mat4 rotateRectangle = glm::rotate((float)(rectangle_rot_degree), glm::vec3(0,0,1)); // rotate about z axis
+  glm::mat4 scaleRectangleGround = glm::scale (glm::vec3(30.0, 0.6, 0));        // glTranslatef
+ 
+  Matrices.model *= (translateRectangleGround*scaleRectangleGround);
+  MVP = VP * Matrices.model;
+  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
+  // draw3DObject draws the VAO given to it using current MVP matrix
+  draw3DObject(rectangular_ground);
   
   Matrices.model = glm::mat4(1.0f);
     GetXandY();
-    cout<<x<<" "<<y<<endl;
+    // cout<<x<<" "<<y<<endl;
    
   glm::mat4 translateBullet = glm::translate (glm::vec3(x+3.1,y+2.1,0));        // glTranslatef
   // glm::mat4 rotateRectangle = glm::rotate((float)(rectangle_rot_degree*M_PI/180.0f), glm::vec3(0,0,1)); // rotate about z axis
@@ -549,12 +619,33 @@ void draw ()
   draw3DObject(bullet);
   
   Matrices.model = glm::mat4(1.0f);
-   glm::mat4 translateCircle = glm::translate (glm::vec3(1,1,0));
+   glm::mat4 translateCircle = glm::translate (glm::vec3(-3.5,1,0));
    Matrices.model *= (translateCircle);
    MVP = VP * Matrices.model;
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
   draw3DObject(circle); 
-   
+  for(int i=1;i<=4;i++)
+  {
+  	Matrices.model=glm::mat4(1.0f);
+  	cout<<i<<endl;
+  	glm::mat4 translateObstacles=glm::translate(glm::vec3(3,1-i/2,0));
+  	glm::mat4 scaleObstacles=glm::scale(glm::vec3(1,0.99,0));
+	Matrices.model *=(translateObstacles*scaleObstacles);
+  	MVP = VP * Matrices.model;
+  	glUniformMatrix4fv(Matrices.MatrixID,1,GL_FALSE,&MVP[0][0]);
+  	draw3DObject(obstacles[i]); 
+  }
+  for(int i=1;i<=2;i++)
+  {
+  	Matrices.model=glm::mat4(1.0f);
+  	cout<<i<<endl;
+  	glm::mat4 translateBricks=glm::translate(glm::vec3(-2+i,3,0));
+  	glm::mat4 scaleBricks=glm::scale(glm::vec3(4.0,0.4,0));
+	Matrices.model *=(translateBricks*scaleBricks);
+  	MVP = VP * Matrices.model;
+  	glUniformMatrix4fv(Matrices.MatrixID,1,GL_FALSE,&MVP[0][0]);
+  	draw3DObject(bricks[i]); 
+  } 
    
   // Increment angles
   //camera_rotation_angle++; // Simulating camera rotation
